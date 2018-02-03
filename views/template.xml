@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+  <data>
+
+    <template id="products_item_invoice" inherit_id="website_sale.total"  name="Invoice">
+      <xpath expr="//div[@id='order_total']" position="before">
+          <div class="row" id="order_invoice">
+              <span class="col-xs-6 text-right h4">Saldo a favor:</span>
+              <span class="col-xs-6 text-left h4" style="white-space: nowrap;">
+                  <span t-esc="website_sale_order.partner_id._compute_amount(website_sale_order.partner_id.id)" style="white-space: nowrap;" t-field-options='{
+                          "widget": "monetary",
+                          "from_currency": "website_sale_order.pricelist_id.currency_id",
+                          "display_currency": "website.currency_id"
+                      }'/>
+              </span>
+          </div>
+      </xpath>
+    </template>
+  </data>
+</openerp>
