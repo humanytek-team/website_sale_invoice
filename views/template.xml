@@ -16,5 +16,15 @@
           </div>
       </xpath>
     </template>
+
+
+        <template id="payment_delivery_invoice_refund" name="Delivery Costs - Invoice Refund" inherit_id="website_sale.payment">
+            <xpath expr="//div[@id='payment_method']/div/ul[@class='list-unstyled']" position="before" >
+                <button name="set_invoice_refund" type="submit"
+                    class="btn btn-primary"
+                    t-if="website_sale_order.partner_id._compute_amount(website_sale_order.partner_id.id) > 0">Utilizar Saldo a favor</button><br/>
+            </xpath>
+        </template>
+
   </data>
 </openerp>
