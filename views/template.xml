@@ -20,9 +20,23 @@
 
         <template id="payment_delivery_invoice_refund" name="Delivery Costs - Invoice Refund" inherit_id="website_sale.payment">
             <xpath expr="//div[@id='payment_method']/div/ul[@class='list-unstyled']" position="before" >
-                <button name="set_invoice_refund" type="submit"
+                <!--<button name="set_invoice_refund" type="submit"
                     class="btn btn-primary"
-                    t-if="website_sale_order.partner_id._compute_amount(website_sale_order.partner_id.id) > 0">Utilizar Saldo a favor</button><br/>
+                    t-if="website_sale_order.partner_id._compute_amount(website_sale_order.partner_id.id) > 0">Utilizar Saldo a favor</button><br/>-->
+
+                <form action="/shop/payment_invoice_refund" method="post" class="mb32">
+                  <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                  <div class="input-group">
+
+                      <label class="control-label label-optional" for="apply_refund_invoice">Aplicar Saldo a Favor</label>
+                      <input type="checkbox" name="apply_refund_invoice" class="form-control input-md"
+                          t-att-checked="'checked' if website_sale_order.get_apply_refund_invoice() else ''"
+                          t-att-value="website_sale_order.get_apply_refund_invoice()"/>
+                      <div class="input-group-btn">
+                          <a class="btn btn-default a-submit">Apply</a>
+                      </div>
+                  </div>
+              </form>
             </xpath>
         </template>
 

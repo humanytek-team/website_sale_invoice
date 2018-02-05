@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    Odoo, Open Source Management Solution
@@ -20,22 +20,28 @@
 #
 ###############################################################################
 
-from openerp import api, fields, models
+from openerp import fields, models, api
 import logging
 _logger = logging.getLogger(__name__)
 
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
 
-class res_partner(models.Model):
-    _inherit = "res.partner"
+    apply_refund_invoice = fields.Boolean(string='Apply Refund Invoice')
 
-    def _compute_amount(self, partner_id):
-        if partner_id:
-            AccountInvoice = self.env['account.invoice']
-            invoices = AccountInvoice.search([
-                ('partner_id.id', '=', partner_id),
-                ('type', '=', 'out_refund'),
-                ('state', '=', 'open')])
-            amount = 0
-            for invoice in invoices:
-                amount += invoice.residual
-        return amount
+    def _prepare_invoice(self):
+        vals = super(SaleOrder, self)._prepare_invoice()
+        vals.update({
+            'apply_refund_invoice': self.apply_refund_invoice,
+        })
+        return vals
+
+    @api.multi
+    def set_apply_refund_invoice(self, value):
+        return self.write({'apply_refund_invoice': value})
+
+    @api.multi
+    def get_apply_refund_invoice(self):
+        _logger.info('wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww')
+        _logger.info(self.apply_refund_invoice)
+        return self.apply_refund_invoice

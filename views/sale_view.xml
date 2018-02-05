@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="sale.view_order_invoice_refund_form" model="ir.ui.view">
+            <field name="name">sale.view.order.invoice.refund.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+
+                <field name="payment_term_id" position="after">
+                  <field name="apply_refund_invoice" readonly="1" />
+                </field>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    Odoo, Open Source Management Solution
@@ -20,22 +20,4 @@
 #
 ###############################################################################
 
-from openerp import api, fields, models
-import logging
-_logger = logging.getLogger(__name__)
-
-
-class res_partner(models.Model):
-    _inherit = "res.partner"
-
-    def _compute_amount(self, partner_id):
-        if partner_id:
-            AccountInvoice = self.env['account.invoice']
-            invoices = AccountInvoice.search([
-                ('partner_id.id', '=', partner_id),
-                ('type', '=', 'out_refund'),
-                ('state', '=', 'open')])
-            amount = 0
-            for invoice in invoices:
-                amount += invoice.residual
-        return amount
+import main

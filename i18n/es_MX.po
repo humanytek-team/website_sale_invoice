@@ -1,0 +1,63 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* website_sale_invoice
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 9.0e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-02-05 12:52+0000\n"
+"PO-Revision-Date: 2018-02-05 12:52+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: website_sale_invoice
+#: model:ir.ui.view,arch_db:website_sale_invoice.products_item_invoice
+msgid "<span class=\"col-xs-6 text-right h4\">Saldo a favor:</span>"
+msgstr "<span class=\"col-xs-6 text-right h4\">Saldo a favor:</span>"
+
+#. module: website_sale_invoice
+#: model:ir.ui.view,arch_db:website_sale_invoice.payment_delivery_invoice_refund
+msgid "Aplicar Saldo a Favor"
+msgstr "Aplicar Saldo a Favor"
+
+#. module: website_sale_invoice
+#: model:ir.ui.view,arch_db:website_sale_invoice.payment_delivery_invoice_refund
+msgid "Apply"
+msgstr "Aplicar"
+
+#. module: website_sale_invoice
+#: model:ir.model.fields,field_description:website_sale_invoice.field_account_invoice_apply_refund_invoice
+#: model:ir.model.fields,field_description:website_sale_invoice.field_sale_order_apply_refund_invoice
+msgid "Apply Refund Invoice"
+msgstr "Aplicar Nota de Crédito"
+
+#. module: website_sale_invoice
+#: model:ir.model,name:website_sale_invoice.model_account_invoice
+msgid "Invoice"
+msgstr "Factura"
+
+#. module: website_sale_invoice
+#: model:ir.model,name:website_sale_invoice.model_res_partner
+msgid "Partner"
+msgstr "Partner"
+
+#. module: website_sale_invoice
+#: model:ir.model,name:website_sale_invoice.model_sale_order
+msgid "Sales Order"
+msgstr "Pedido de venta"
+
+#. module: website_sale_invoice
+#: model:ir.model.fields,field_description:website_sale_invoice.field_account_invoice_website_message_ids
+msgid "Website Messages"
+msgstr "Mensajes del sitio web"
+
+#. module: website_sale_invoice
+#: model:ir.model.fields,help:website_sale_invoice.field_account_invoice_website_message_ids
+msgid "Website communication history"
+msgstr "Sitio Web historial de comunicación"
+
