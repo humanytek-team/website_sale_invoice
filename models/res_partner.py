@@ -20,7 +20,7 @@
 #
 ###############################################################################
 
-from openerp import api, fields, models
+from openerp import models
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ class res_partner(models.Model):
     _inherit = "res.partner"
 
     def _compute_amount(self, partner_id):
+        amount = 0
         if partner_id:
             AccountInvoice = self.env['account.invoice']
             invoices = AccountInvoice.search([
@@ -36,6 +37,21 @@ class res_partner(models.Model):
                 ('type', '=', 'out_refund'),
                 ('state', '=', 'open')])
             amount = 0
+            for invoice in invoices:
+                amount += invoice.residual
+        return amount
+
+    def _compute_amount2(self, partner_id, pool, cr, uid, context):
+        amount = 0
+        if partner_id:
+            AccountInvoice = pool['account.invoice']
+            invoice_ids = AccountInvoice.search(cr, uid, [
+                ('partner_id.id', '=', partner_id),
+                ('type', '=', 'out_refund'),
+                ('state', '=', 'open')
+                ], context=context)
+            amount = 0
+            invoices = AccountInvoice.browse(cr, uid, invoice_ids, context)
             for invoice in invoices:
                 amount += invoice.residual
         return amount

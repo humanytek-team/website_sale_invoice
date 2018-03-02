@@ -25,6 +25,7 @@ from openerp import http
 from openerp.http import request
 from openerp import SUPERUSER_ID
 import openerp.addons.website_sale.controllers.main
+from openerp.tools.translate import _
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -34,49 +35,94 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
     @http.route(['/shop/payment_invoice_refund'], type='http',
                 auth="public", website=True)
     def set_invoice_refund(self, **post):
-        _logger.info('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        _logger.info(self)
         cr, uid, context, registry = request.cr, request.uid, request.context, request.registry
-        _logger.info(post)
-        _logger.info(post.get('apply_refund_invoice'))
-        _logger.info(request.website)
         sale_order_orm = registry.get('sale.order')
+
         order = sale_order_orm.browse(cr, SUPERUSER_ID,
                             request.session['sale_order_id'], context)
-        _logger.info(request.session['sale_order_id'])
-        #order = request.website.sale_get_order(context=context)
         value = False
         if order:
             if post.get('apply_refund_invoice'):
                 value = True
-            _logger.info('DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD')
-                #values = self.checkout_values(post)
-                #_logger.info(order.apply_refund_invoice)
-            _logger.info(value)
             order.set_apply_refund_invoice(value)
-            #return request.redirect("/shop")
-
-        #redirection = self.checkout_redirection(order)
-        #if redirection:
-            #return redirection
-
-        #values = self.checkout_values(post)
-
-        #values["error"], values["error_message"] = self.checkout_form_validate(values["checkout"])
-        #if values["error"]:
-            #return request.website.render("website_sale.checkout", values)
-
-        #self.checkout_form_save(values["checkout"])
-
-        #order.onchange_partner_shipping_id()
-        #order.order_line._compute_tax_id()
-
-        #request.session['sale_last_order_id'] = order.id
-
-        #request.website.sale_get_order(update_pricelist=True, context=context)
-
-        #extra_step = registry['ir.model.data'].xmlid_to_object(cr, uid, 'website_sale.extra_info_option', raise_if_not_found=True)
-        #if extra_step.active:
-            #return request.redirect("/shop/extra_info")
 
         return request.redirect("/shop/payment")
+
+    @http.route(['/shop/payment/transaction/<int:acquirer_id>'], type='json',
+                auth="public", website=True)
+    def payment_transaction(self, acquirer_id):
+        """ Json method that creates a payment.transaction, used to create a
+        transaction when the user clicks on 'pay now' button. After having
+        created the transaction, the event continues and the user is redirected
+        to the acquirer website.
+
+        :param int acquirer_id: id of a payment.acquirer record. If not set the
+                                user is redirected to the checkout page
+        """
+        cr, uid, context = request.cr, request.uid, request.context
+        payment_obj = request.registry.get('payment.acquirer')
+        transaction_obj = request.registry.get('payment.transaction')
+        order = request.website.sale_get_order(context=context)
+        res_partner_orm = request.registry.get('res.partner')
+        account_invoice_orm = request.registry.get('account.invoice')
+        if not order or not order.order_line or acquirer_id is None:
+            return request.redirect("/shop/checkout")
+
+        assert order.partner_id.id != request.website.partner_id.id
+
+        # find an already existing transaction
+        tx = request.website.sale_get_transaction()
+        amount = order.amount_total
+        if order.apply_refund_invoice:
+            _logger.info(res_partner_orm._compute_amount2(order.partner_id.id,
+                    request.registry, cr, SUPERUSER_ID, context))
+            amount = order.amount_total - res_partner_orm._compute_amount2(
+                    order.partner_id.id,
+                    request.registry, cr, SUPERUSER_ID, context)
+            _logger.info(amount)
+        if tx:
+            tx_id = tx.id
+            if tx.sale_order_id.id != order.id or tx.state in ['error', 'cancel'] or tx.acquirer_id.id != acquirer_id:
+                tx = False
+                tx_id = False
+            elif tx.state == 'draft':  # button cliked but no more info -> rewrite on tx or create a new one ?
+                tx.write(dict(transaction_obj.on_change_partner_id(cr, SUPERUSER_ID, None, order.partner_id.id, context=context).get('value', {}), amount=amount))
+        if not tx:
+            tx_id = transaction_obj.create(cr, SUPERUSER_ID, {
+                'acquirer_id': acquirer_id,
+                'type': 'form',
+                'amount': amount,
+                'currency_id': order.pricelist_id.currency_id.id,
+                'partner_id': order.partner_id.id,
+                'partner_country_id': order.partner_id.country_id.id,
+                'reference': request.env['payment.transaction'].get_next_reference(order.name),
+                'sale_order_id': order.id,
+            }, context=context)
+            request.session['sale_transaction_id'] = tx_id
+            tx = transaction_obj.browse(cr, SUPERUSER_ID, tx_id, context=context)
+
+        # update quotation
+        request.registry['sale.order'].write(
+            cr, SUPERUSER_ID, [order.id], {
+                'payment_acquirer_id': acquirer_id,
+                'payment_tx_id': request.session['sale_transaction_id']
+            }, context=context)
+
+        # confirm the quotation
+        if tx.acquirer_id.auto_confirm == 'at_pay_now':
+            request.registry['sale.order'].action_confirm(cr, SUPERUSER_ID,
+                            [order.id], context=dict(request.context,
+                            send_email=True))
+        return payment_obj.render(
+            request.cr, SUPERUSER_ID, tx.acquirer_id.id,
+            tx.reference,
+            amount,
+            order.pricelist_id.currency_id.id,
+            values={
+                'return_url': '/shop/payment/validate',
+                'partner_id': order.partner_shipping_id.id or order.partner_invoice_id.id,
+                'billing_partner_id': order.partner_invoice_id.id,
+            },
+            context=dict(context, submit_class='btn btn-primary',
+                        submit_txt=_('Pay Now')))
+

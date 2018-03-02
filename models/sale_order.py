@@ -24,6 +24,7 @@ from openerp import fields, models, api
 import logging
 _logger = logging.getLogger(__name__)
 
+
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
@@ -42,6 +43,4 @@ class SaleOrder(models.Model):
 
     @api.multi
     def get_apply_refund_invoice(self):
-        _logger.info('wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww')
-        _logger.info(self.apply_refund_invoice)
         return self.apply_refund_invoice

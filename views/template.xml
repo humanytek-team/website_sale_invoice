@@ -20,14 +20,10 @@
 
         <template id="payment_delivery_invoice_refund" name="Delivery Costs - Invoice Refund" inherit_id="website_sale.payment">
             <xpath expr="//div[@id='payment_method']/div/ul[@class='list-unstyled']" position="before" >
-                <!--<button name="set_invoice_refund" type="submit"
-                    class="btn btn-primary"
-                    t-if="website_sale_order.partner_id._compute_amount(website_sale_order.partner_id.id) > 0">Utilizar Saldo a favor</button><br/>-->
 
                 <form action="/shop/payment_invoice_refund" method="post" class="mb32">
                   <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                   <div class="input-group">
-
                       <label class="control-label label-optional" for="apply_refund_invoice">Aplicar Saldo a Favor</label>
                       <input type="checkbox" name="apply_refund_invoice" class="form-control input-md"
                           t-att-checked="'checked' if website_sale_order.get_apply_refund_invoice() else ''"
@@ -39,6 +35,27 @@
               </form>
             </xpath>
         </template>
+
+    <template id="confirmation_invoice" inherit_id="website_sale.confirmation"  name="Invoice">
+      <!--<xpath expr="//strong[@t-field='order.amount_total'][1]" position="replace" >-->
+      <xpath expr="//table[2]/tbody/tr/td[3]/strong" position="replace" >
+
+        <t t-if="not order.apply_refund_invoice">
+          <strong t-field="order.amount_total"
+              t-field-options='{"widget": "monetary", "display_currency": "order.pricelist_id.currency_id"}'/>
+        </t>
+        <t t-if="order.apply_refund_invoice"
+            t-set="amount_refund" t-value="order.partner_id._compute_amount(order.partner_id.id)"/>
+        <t t-if="order.apply_refund_invoice and amount_refund &gt;= order.amount_total"
+            t-set="amount" t-value="0"/>
+        <t t-if="order.apply_refund_invoice and amount_refund &lt; order.amount_total"
+            t-set="amount" t-value="order.amount_total - amount_refund"/>
+        <t t-if="order.apply_refund_invoice">
+             <strong t-esc="amount"
+                  t-field-options='{"widget": "monetary", "display_currency": "order.pricelist_id.currency_id"}'/>
+        </t>
+      </xpath>
+    </template>
 
   </data>
 </openerp>
