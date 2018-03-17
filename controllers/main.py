@@ -74,12 +74,18 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
         tx = request.website.sale_get_transaction()
         amount = order.amount_total
         if order.apply_refund_invoice:
+            _logger.info('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
             _logger.info(res_partner_orm._compute_amount2(order.partner_id.id,
                     request.registry, cr, SUPERUSER_ID, context))
-            amount = order.amount_total - res_partner_orm._compute_amount2(
-                    order.partner_id.id,
-                    request.registry, cr, SUPERUSER_ID, context)
+            amount_refund = res_partner_orm._compute_amount2(
+                            order.partner_id.id,
+                            request.registry, cr, SUPERUSER_ID, context)
             _logger.info(amount)
+            if order.amount_total < amount_refund:
+                amount = 0
+            else:
+                amount = order.amount_total - amount_refund
+
         if tx:
             tx_id = tx.id
             if tx.sale_order_id.id != order.id or tx.state in ['error', 'cancel'] or tx.acquirer_id.id != acquirer_id:
@@ -100,7 +106,6 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
             }, context=context)
             request.session['sale_transaction_id'] = tx_id
             tx = transaction_obj.browse(cr, SUPERUSER_ID, tx_id, context=context)
-
         # update quotation
         request.registry['sale.order'].write(
             cr, SUPERUSER_ID, [order.id], {
@@ -109,10 +114,15 @@ class website_sale(openerp.addons.website_sale.controllers.main.website_sale):
             }, context=context)
 
         # confirm the quotation
+        _logger.info('AAAAAAAAAAAAAAAAAAAAAAAAAAAAACCCCCCCCCCCCCCCCCCCC')
+        _logger.info(tx.acquirer_id.auto_confirm)
+        _logger.info(order.state)
         if tx.acquirer_id.auto_confirm == 'at_pay_now':
+            _logger.info('jjjjjjjjjjjjjjjjjjjjjjjjjjjjj')
             request.registry['sale.order'].action_confirm(cr, SUPERUSER_ID,
                             [order.id], context=dict(request.context,
                             send_email=True))
+
         return payment_obj.render(
             request.cr, SUPERUSER_ID, tx.acquirer_id.id,
             tx.reference,

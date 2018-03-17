@@ -46,14 +46,33 @@
         </t>
         <t t-if="order.apply_refund_invoice"
             t-set="amount_refund" t-value="order.partner_id._compute_amount(order.partner_id.id)"/>
-        <t t-if="order.apply_refund_invoice and amount_refund &gt;= order.amount_total"
-            t-set="amount" t-value="0"/>
-        <t t-if="order.apply_refund_invoice and amount_refund &lt; order.amount_total"
-            t-set="amount" t-value="order.amount_total - amount_refund"/>
-        <t t-if="order.apply_refund_invoice">
-             <strong t-esc="amount"
+        <t t-if="order.apply_refund_invoice and float(amount_refund) &lt;= float(order.amount_total)"
+            >
+            <strong t-esc="order.amount_total - amount_refund"
                   t-field-options='{"widget": "monetary", "display_currency": "order.pricelist_id.currency_id"}'/>
         </t>
+        <t t-if="order.apply_refund_invoice and float(amount_refund) &gt;= float(order.amount_total)"
+            >
+            <strong>0</strong>
+        </t>
+       <!-- <t t-if="order.apply_refund_invoice">
+             <strong t-esc="amount"
+                  t-field-options='{"widget": "monetary", "display_currency": "order.pricelist_id.currency_id"}'/>
+        </t>-->
+      </xpath>
+      <xpath expr="//table[2]/tbody/tr" position="before" >
+          <tr t-if="order.apply_refund_invoice">
+              <t t-if="order.apply_refund_invoice"
+                  t-set="amount_refund" t-value="order.partner_id._compute_amount(order.partner_id.id)" />
+              <td colspan="2" t-if="order.apply_refund_invoice">
+                  <strong>Saldo a Favor:</strong>
+              </td>
+              <td class="text-right" width="100" />
+              <td class="text-right" width="100">
+                  <strong><t t-esc="amount_refund" t-field-options='{"widget": "monetary", "display_currency": "order.pricelist_id.currency_id"}'/></strong>
+              </td>
+          </tr>
+
       </xpath>
     </template>
 

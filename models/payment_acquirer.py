@@ -20,8 +20,29 @@
 #
 ###############################################################################
 
-import res_partner
-import sale_order
-import account_invoice
-import payment
-import payment_acquirer
+from openerp.addons.payment.models.payment_acquirer import ValidationError
+from openerp.osv import osv
+from openerp.tools.float_utils import float_compare
+from openerp.tools.translate import _
+
+import logging
+import pprint
+
+_logger = logging.getLogger(__name__)
+
+
+class TransferPaymentTransaction(osv.Model):
+    _inherit = 'payment.transaction'
+
+    def _transfer_form_get_invalid_parameters(self, cr, uid, tx, data, context=None):
+        invalid_parameters = []
+
+        if data.get('amount'):
+            if float_compare(float(data.get('amount', '0.0')), tx.amount, 2) != 0:
+                invalid_parameters.append(('amount', data.get('amount'), '%.2f' % tx.amount))
+
+        if data.get('currency'):
+            if data.get('currency') != tx.currency_id.name:
+                invalid_parameters.append(('currency', data.get('currency'), tx.currency_id.name))
+
+        return invalid_parameters
